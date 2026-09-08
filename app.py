@@ -1,99 +1,78 @@
 
+import streamlit as st
 import pickle
 import numpy as np
 import time
 
+# -------------------------------------------------
+# PAGE CONFIG
+# -------------------------------------------------
 st.set_page_config(
     page_title="Student Result Predictor",
     page_icon="🎓",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="centered"
 )
 
+# -------------------------------------------------
+# CUSTOM CSS
+# -------------------------------------------------
 st.markdown("""
 <style>
 
-    /* Main Background */
-    .stApp {
-        background: linear-gradient(135deg, #141E30, #243B55);
-        color: white;
-    }
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #1e3a5f);
+}
 
-    /* Title */
-    .main-title {
-        text-align: center;
-        font-size: 45px;
-        font-weight: bold;
-        color: #ffffff;
-        margin-bottom: 5px;
-    }
+.main-title {
+    text-align: center;
+    color: white;
+    font-size: 42px;
+    font-weight: bold;
+    margin-bottom: 0px;
+}
 
-    .subtitle {
-        text-align: center;
-        font-size: 18px;
-        color: #cbd5e1;
-        margin-bottom: 30px;
-    }
+.subtitle {
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 17px;
+    margin-bottom: 30px;
+}
 
-    /* Card */
-    .card {
-        background: rgba(255,255,255,0.08);
-        padding: 25px;
-        border-radius: 20px;
-        box-shadow: 0px 8px 25px rgba(0,0,0,0.3);
-        backdrop-filter: blur(10px);
-        margin-bottom: 20px;
-    }
+div.stButton > button {
+    width: 100%;
+    height: 55px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #2563eb, #06b6d4);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    transition: 0.3s;
+}
 
-    /* Predict Button */
-    div.stButton > button {
-        width: 100%;
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        color: white;
-        border-radius: 12px;
-        height: 55px;
-        font-size: 20px;
-        font-weight: bold;
-        border: none;
-        transition: 0.3s;
-    }
+div.stButton > button:hover {
+    transform: scale(1.03);
+    box-shadow: 0px 0px 20px #06b6d4;
+}
 
-    div.stButton > button:hover {
-        transform: scale(1.03);
-        box-shadow: 0px 0px 20px #00c6ff;
-    }
-
-    /* Result Box */
-    .result-card {
-        padding: 30px;
-        border-radius: 20px;
-        text-align: center;
-        font-size: 28px;
-        font-weight: bold;
-        margin-top: 25px;
-        background: linear-gradient(135deg, #11998e, #38ef7d);
-        color: white;
-        animation: fadeIn 1s;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0px);
-        }
-    }
+.result-box {
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 25px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: white;
+    margin-top: 20px;
+}
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# --------------------------------------------------
+# -------------------------------------------------
 # LOAD MODEL
-# --------------------------------------------------
+# -------------------------------------------------
 @st.cache_resource
 def load_model():
     with open("model.pkl", "rb") as file:
@@ -101,101 +80,67 @@ def load_model():
     return model
 
 
-model = load_model()
+try:
+    model = load_model()
+except FileNotFoundError:
+    st.error("❌ model.pkl file not found. Please upload it to the same folder.")
+    st.stop()
 
 
-# --------------------------------------------------
+# -------------------------------------------------
 # HEADER
-# --------------------------------------------------
+# -------------------------------------------------
 st.markdown(
-    '<div class="main-title">🎓 Student Result Predictor</div>',
+    '<p class="main-title">🎓 Student Result Predictor</p>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="subtitle">Enter subject marks and predict the student result using Machine Learning 🤖</div>',
+    '<p class="subtitle">Enter student marks and predict the result using Machine Learning 🤖</p>',
     unsafe_allow_html=True
 )
 
 
-# --------------------------------------------------
-# INPUT SECTION
-# --------------------------------------------------
-st.markdown('<div class="card">', unsafe_allow_html=True)
-
-st.subheader("📝 Enter Student Marks")
+# -------------------------------------------------
+# INPUTS
+# -------------------------------------------------
+st.subheader("📝 Enter Subject Marks")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    hindi = st.number_input(
-        "📘 Hindi Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
-
-    science = st.number_input(
-        "🔬 Science Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
-
-    history = st.number_input(
-        "📜 History Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
-
+    hindi = st.number_input("📘 Hindi", 0, 100, 50)
+    science = st.number_input("🔬 Science", 0, 100, 50)
+    history = st.number_input("📜 History", 0, 100, 50)
 
 with col2:
-    english = st.number_input(
-        "📕 English Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
-
-    maths = st.number_input(
-        "📐 Maths Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
-
-    geography = st.number_input(
-        "🌍 Geography Marks",
-        min_value=0.0,
-        max_value=100.0,
-        value=50.0
-    )
+    english = st.number_input("📕 English", 0, 100, 50)
+    maths = st.number_input("📐 Maths", 0, 100, 50)
+    geography = st.number_input("🌍 Geography", 0, 100, 50)
 
 
-# Automatically Calculate Total
+# -------------------------------------------------
+# CALCULATE TOTAL
+# -------------------------------------------------
 total = hindi + english + science + maths + history + geography
 
-st.info(f"📊 **Calculated Total Marks: {total:.0f}**")
-
-st.markdown('</div>', unsafe_allow_html=True)
+st.info(f"📊 Total Marks: {total} / 600")
 
 
-# --------------------------------------------------
-# PREDICT BUTTON
-# --------------------------------------------------
+# -------------------------------------------------
+# PREDICTION
+# -------------------------------------------------
 if st.button("🚀 Predict Result"):
 
-    # Loading Effect
     with st.spinner("🤖 AI is analyzing student performance..."):
 
-        progress_bar = st.progress(0)
+        progress = st.progress(0)
 
-        for percent_complete in range(100):
+        for i in range(100):
             time.sleep(0.01)
-            progress_bar.progress(percent_complete + 1)
+            progress.progress(i + 1)
 
-    # Input Array
+    # Input data in exact training order
     input_data = np.array([
         [
             hindi,
@@ -208,31 +153,32 @@ if st.button("🚀 Predict Result"):
         ]
     ])
 
-    # Prediction
-    prediction = model.predict(input_data)
+    try:
+        prediction = model.predict(input_data)
 
-    # Result
-    st.balloons()
+        st.balloons()
 
-    st.markdown(
-        f"""
-        <div class="result-card">
-            🎯 Prediction Complete! <br><br>
-            Student Result: <b>{prediction[0]}</b>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f"""
+            <div class="result-box">
+                🎯 Prediction Complete! <br><br>
+                Student Result: {prediction[0]}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
+    except Exception as e:
+        st.error(f"Prediction Error: {e}")
+
+
+# -------------------------------------------------
+# FOOTER
+# -------------------------------------------------
 st.markdown("---")
 
 st.markdown(
-    """
-    <center>
-    🤖 Machine Learning Powered Student Result Prediction System <br>
-    Built with ❤️ using Streamlit & Scikit-learn
-    </center>
-    """,
+    "<center>🤖 Built with Machine Learning & Streamlit</center>",
     unsafe_allow_html=True
 )
-```
+
